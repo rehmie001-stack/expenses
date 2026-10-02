@@ -1,0 +1,69 @@
+{
+  "name": "mall-expenses-desktop",
+  "version": "0.1.0",
+  "description": "Mall Expenses desktop app",
+  "author": "Mall Expenses Team",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "concurrently \"node server/index.js\" \"vite\" \"wait-on http://localhost:5173 http://localhost:4000 && electron .\"",
+    "server": "node server/index.js",
+    "build": "vite build",
+    "start": "concurrently \"node server/index.js\" \"npm run build && electron .\"",
+    "dist:win": "npm run build && electron-builder --win --dir --config.win.sign=false --config.win.signAndEditExecutable=false",
+    "dist:portable": "npm run build && electron-builder --win portable --config.win.sign=false --config.win.signAndEditExecutable=false"
+  },
+  "build": {
+    "appId": "com.mall.expenses",
+    "productName": "Mall Expenses",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "electron/**/*",
+      "src/**/*",
+      "api.js",
+      "App.jsx",
+      "index.html",
+      "theme.css",
+      "theme.jsx",
+      "package.json"
+    ],
+    "win": {
+      "sign": false,
+      "signAndEditExecutable": false,
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.6.1",
+    "express": "^4.21.2",
+    "pg": "^8.23.1",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "sql.js": "^1.13.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.0",
+    "concurrently": "^8.2.2",
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.0",
+    "electron-rebuild": "^3.2.9",
+    "vite": "^5.4.0",
+    "wait-on": "^7.2.0"
+  }
+}
