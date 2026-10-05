@@ -78,5 +78,14 @@ input:focus,select:focus{outline:2px solid var(--accent);border-color:transparen
 .dot.on{border-color:var(--text)}
 .login{min-height:100vh;display:grid;place-items:center}
 .login .card{width:360px;display:grid;gap:12px}
+.pwa-install-banner{position:fixed;z-index:20;right:20px;bottom:20px;display:flex;align-items:center;gap:12px;max-width:min(520px,calc(100vw - 32px));padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow)}
+.pwa-install-copy{display:grid;gap:4px;min-width:0}
+.pwa-install-copy strong{font-size:14px}
+.pwa-install-copy span{color:var(--muted);font-size:12px}
+.pwa-install-action{flex:none;padding:9px 13px}
+.pwa-install-dismiss{flex:none;border:0;background:transparent;color:var(--muted);font-size:12px;cursor:pointer}
+.pwa-install-backdrop{position:fixed;inset:0;z-index:21;display:grid;place-items:center;padding:20px;background:rgba(12,18,24,.5)}
+.pwa-install-dialog{width:min(360px,100%);padding:20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow)}
+.pwa-install-dialog p{color:var(--muted);font-size:14px;line-height:1.5}
 .form{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:18px}
-@media (max-width: 760px){.app{grid-template-columns:1fr;height:auto;min-height:100vh}.sidebar{border-right:0;border-bottom:1px solid var(--border);padding:12px;flex-direction:row;align-items:center;overflow:auto}.logo{padding:4px 10px}.sidebar>div[style]{display:none}.nav{white-space:nowrap}.main{padding:20px 16px}.insight-panel{grid-template-columns:1fr}.welcome-banner{align-items:flex-start;gap:12px;flex-direction:column}.trend-chip{align-self:flex-start}.donut-wrap{justify-content:flex-start}.range-switcher button{padding:5px 6px}}
+@media (max-width: 760px){.app{grid-template-columns:1fr;height:auto;min-height:100vh}.sidebar{border-right:0;border-bottom:1px solid var(--border);padding:12px;flex-direction:row;align-items:center;overflow:auto}.logo{padding:4px 10px}.sidebar>div[style]{display:none}.nav{white-space:nowrap}.main{padding:20px 16px}.insight-panel{grid-template-columns:1fr}.welcome-banner{align-items:flex-start;gap:12px;flex-direction:column}.trend-chip{align-self:flex-start}.donut-wrap{justify-content:flex-start}.range-switcher button{padding:5px 6px}.pwa-install-banner{right:12px;bottom:12px;left:12px;max-width:none;gap:8px;padding:12px}.pwa-install-copy{flex:1}.pwa-install-copy span{max-width:170px;line-height:1.35}.pwa-install-action{padding:9px 11px}.pwa-install-dismiss{padding:7px 4px}}

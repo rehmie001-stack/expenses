@@ -5,7 +5,7 @@
   "author": "Mall Expenses Team",
   "main": "electron/main.js",
   "scripts": {
-    "dev": "concurrently \"node server/index.js\" \"vite\" \"wait-on http://localhost:5173 http://localhost:4000 && electron .\"",
+    "dev": "concurrently \"node server/index.js\" \"vite\" \"wait-on http://localhost:5173 http://localhost:4000/health && electron .\"",
     "server": "node server/index.js",
     "build": "vite build",
     "start": "concurrently \"node server/index.js\" \"npm run build && electron .\"",
@@ -64,6 +64,7 @@
     "electron-builder": "^24.13.0",
     "electron-rebuild": "^3.2.9",
     "vite": "^5.4.0",
+    "vite-plugin-pwa": "^2.0.0",
     "wait-on": "^7.2.0"
   }
 }

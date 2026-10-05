@@ -7,6 +7,76 @@ const PRIV = ['super_admin', 'manager', 'accountant'];
 const EXPENSE_CATEGORIES = ['Utilities', 'Operations', 'Marketing', 'Supplies', 'Transport', 'Payroll', 'Other'];
 const fmt = (n) => '₦' + Number(n || 0).toLocaleString();
 
+function PwaInstallPrompt() {
+  const [installEvent, setInstallEvent] = useState(null);
+  const [visible, setVisible] = useState(false);
+  const [showInstructions, setShowInstructions] = useState(false);
+
+  useEffect(() => {
+    const isInstalled = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+    const isElectron = Boolean(window.mallExpensesAPI);
+    if (isInstalled || isElectron) return undefined;
+
+    const showPrompt = (event) => {
+      event.preventDefault();
+      setInstallEvent(event);
+      setVisible(true);
+    };
+    const markInstalled = () => {
+      setInstallEvent(null);
+      setVisible(false);
+    };
+    const timer = window.setTimeout(() => setVisible(true), 1200);
+
+    window.addEventListener('beforeinstallprompt', showPrompt);
+    window.addEventListener('appinstalled', markInstalled);
+
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('beforeinstallprompt', showPrompt);
+      window.removeEventListener('appinstalled', markInstalled);
+    };
+  }, []);
+
+  if (!visible) return null;
+
+  const install = async () => {
+    if (!installEvent) {
+      setShowInstructions(true);
+      return;
+    }
+
+    await installEvent.prompt();
+    const choice = await installEvent.userChoice;
+    setInstallEvent(null);
+    if (choice.outcome === 'accepted') setVisible(false);
+  };
+
+  return (
+    <>
+      <aside className="pwa-install-banner" role="status">
+        <div className="pwa-install-copy">
+          <strong>Install Mall Expenses</strong>
+          <span>Add it to your device for quick access.</span>
+        </div>
+        <button className="btn pwa-install-action" onClick={install}>Install</button>
+        <button className="pwa-install-dismiss" onClick={() => setVisible(false)}>Not now</button>
+      </aside>
+      {showInstructions && (
+        <div className="pwa-install-backdrop" role="presentation" onClick={() => setShowInstructions(false)}>
+          <section className="pwa-install-dialog" role="dialog" aria-modal="true" aria-labelledby="pwa-install-title" onClick={event => event.stopPropagation()}>
+            <strong id="pwa-install-title">Install Mall Expenses</strong>
+            <p>{/iPhone|iPad|iPod/i.test(navigator.userAgent)
+              ? 'In Safari, tap Share, then choose Add to Home Screen.'
+              : 'Open your browser menu and choose Install app or Add to home screen.'}</p>
+            <button className="btn" onClick={() => setShowInstructions(false)}>Got it</button>
+          </section>
+        </div>
+      )}
+    </>
+  );
+}
+
 function Login({ onLogin }) {
   const [f, setF] = useState({ email: '', password: '' });
   const [err, setErr] = useState('');
@@ -321,6 +391,7 @@ export default function App() {
   return (
     <ThemeProvider>
       <AppShell />
+      <PwaInstallPrompt />
     </ThemeProvider>
   );
 }

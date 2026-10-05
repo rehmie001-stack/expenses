@@ -323,33 +323,38 @@ export async function api(path, options = {}) {
   const token = getToken();
   const baseUrl = getApiBaseUrl();
 
+  const headers = { Accept: 'application/json' };
+  const body = options.body;
+
+  if (body !== undefined) {
+    headers['Content-Type'] = 'application/json';
+  }
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  let response;
   try {
-    const headers = { Accept: 'application/json' };
-    const body = options.body;
-
-    if (body !== undefined) {
-      headers['Content-Type'] = 'application/json';
-    }
-
-    if (token) {
-      headers.Authorization = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`${baseUrl}${normalizedPath}`, {
+    response = await fetch(`${baseUrl}${normalizedPath}`, {
       ...options,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
     });
-
-    const text = await response.text();
-    const data = text ? JSON.parse(text) : null;
-
-    if (!response.ok) {
-      throw new Error(data?.message || 'Request failed');
-    }
-
-    return data;
   } catch (error) {
-    return fallbackApi(path, options);
+    const hostname = new URL(baseUrl).hostname;
+    if (['localhost', '127.0.0.1', '[::1]'].includes(hostname)) {
+      return fallbackApi(path, options);
+    }
+    throw new Error(`Cannot connect to the shared API at ${baseUrl}. Check the server URL or your internet connection.`);
   }
+
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
+
+  if (!response.ok) {
+    throw new Error(data?.message || 'Request failed');
+  }
+
+  return data;
 }
