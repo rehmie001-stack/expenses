@@ -1,4 +1,4 @@
-# Mall Expenses Desktop
+# Rhemie Mall
 
 ## Shared team setup
 

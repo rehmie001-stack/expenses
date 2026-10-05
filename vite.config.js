@@ -10,9 +10,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['app-icon.svg'],
       manifest: {
-        name: 'Mall Expenses',
-        short_name: 'Expenses',
-        description: 'Shared mall expense management',
+        name: 'Rhemie Mall',
+        short_name: 'Rhemie Mall',
+        description: 'Shared expense management for Rhemie Mall',
         theme_color: '#137c67',
         background_color: '#f5f6fa',
         display: 'standalone',

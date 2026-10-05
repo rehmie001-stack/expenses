@@ -1,8 +1,8 @@
 {
   "name": "mall-expenses-desktop",
   "version": "0.1.0",
-  "description": "Mall Expenses desktop app",
-  "author": "Mall Expenses Team",
+  "description": "Rhemie Mall expense management app",
+  "author": "Rhemie Mall Team",
   "main": "electron/main.js",
   "scripts": {
     "dev": "concurrently \"node server/index.js\" \"vite\" \"wait-on http://localhost:5173 http://localhost:4000/health && electron .\"",
@@ -14,7 +14,7 @@
   },
   "build": {
     "appId": "com.mall.expenses",
-    "productName": "Mall Expenses",
+    "productName": "Rhemie Mall",
     "directories": {
       "output": "release"
     },

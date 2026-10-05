@@ -56,7 +56,7 @@ function PwaInstallPrompt() {
     <>
       <aside className="pwa-install-banner" role="status">
         <div className="pwa-install-copy">
-          <strong>Install Mall Expenses</strong>
+          <strong>Install Rhemie Mall</strong>
           <span>Add it to your device for quick access.</span>
         </div>
         <button className="btn pwa-install-action" onClick={install}>Install</button>
@@ -65,7 +65,7 @@ function PwaInstallPrompt() {
       {showInstructions && (
         <div className="pwa-install-backdrop" role="presentation" onClick={() => setShowInstructions(false)}>
           <section className="pwa-install-dialog" role="dialog" aria-modal="true" aria-labelledby="pwa-install-title" onClick={event => event.stopPropagation()}>
-            <strong id="pwa-install-title">Install Mall Expenses</strong>
+            <strong id="pwa-install-title">Install Rhemie Mall</strong>
             <p>{/iPhone|iPad|iPod/i.test(navigator.userAgent)
               ? 'In Safari, tap Share, then choose Add to Home Screen.'
               : 'Open your browser menu and choose Install app or Add to home screen.'}</p>
@@ -95,7 +95,7 @@ function Login({ onLogin }) {
 
   return (
     <div className="login"><div className="card">
-      <div className="logo">Mall<span>Expenses</span></div>
+      <div className="logo">Rhemie <span>Mall</span></div>
       <input placeholder="Email" onChange={e => setF({ ...f, email: e.target.value })} />
       <input type="password" placeholder="Password" onChange={e => setF({ ...f, password: e.target.value })} onKeyDown={e => e.key === 'Enter' && go()} />
       <input
@@ -408,7 +408,7 @@ function AppShell() {
   return (
     <div className="app">
       <aside className="sidebar">
-        <div className="logo">Mall<span>Expenses</span></div>
+        <div className="logo">Rhemie <span>Mall</span></div>
         {tabs.map(t => <button key={t} className={'nav' + (tab === t ? ' active' : '')} onClick={() => setTab(t)}>{t}</button>)}
         <div style={{ flex: 1 }} />
         <button className="nav" onClick={() => { setToken(null); setUser(null); }}>Sign out</button>

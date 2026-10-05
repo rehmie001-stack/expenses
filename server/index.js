@@ -31,7 +31,7 @@ app.use(cors());
 app.use(express.json());
 
 app.get('/health', (req, res) => {
-  res.json({ ok: true, message: 'Mall Expenses API is running' });
+  res.json({ ok: true, message: 'Rhemie Mall API is running' });
 });
 
 app.post('/auth/login', async (req, res) => {
@@ -167,7 +167,7 @@ async function startServer() {
   service = await createService();
   await new Promise((resolve, reject) => {
     const server = app.listen(PORT, () => {
-      console.log(`Mall Expenses API listening on http://localhost:${PORT}`);
+      console.log(`Rhemie Mall API listening on http://localhost:${PORT}`);
       resolve();
     });
     server.once('error', reject);
@@ -180,7 +180,7 @@ startServer().catch(async (error) => {
       const response = await fetch(`http://127.0.0.1:${PORT}/health`);
       const health = await response.json();
       if (response.ok && health.ok) {
-        console.log(`Mall Expenses API already running on http://localhost:${PORT}`);
+        console.log(`Rhemie Mall API already running on http://localhost:${PORT}`);
         return;
       }
     } catch {
@@ -188,7 +188,7 @@ startServer().catch(async (error) => {
     }
     console.error(`Port ${PORT} is already in use by another service.`);
   } else {
-    console.error('Failed to start Mall Expenses API:', error);
+    console.error('Failed to start Rhemie Mall API:', error);
   }
   process.exitCode = 1;
 });
