@@ -282,7 +282,7 @@ function Users() {
 
 function Dashboard({ user }) {
   const [s, setS] = useState(null);
-  const [range, setRange] = useState('monthly');
+  const [range, setRange] = useState('1m');
   useEffect(() => { PRIV.includes(user.role) && api(`/summary?range=${range}`).then(setS); }, [range, user.role]);
   const total = s?.byCategory.reduce((a, c) => a + c.total, 0) || 0;
   const approved = Number(s?.approved || 0);
@@ -301,9 +301,9 @@ function Dashboard({ user }) {
   const previousTrend = trend.at(-2)?.total || 0;
   const trendChange = previousTrend ? ((currentTrend - previousTrend) / previousTrend) * 100 : 0;
   const donut = [
-    { name: 'Utilities', value: s?.byCategory.find(c => c._id === 'Utilities')?.total || 35000, color: '#f87171' },
-    { name: 'Operations', value: s?.byCategory.find(c => c._id === 'Operations')?.total || 22000, color: '#2dd4bf' },
-    { name: 'Marketing', value: s?.byCategory.find(c => c._id === 'Marketing')?.total || 48000, color: '#fbbf24' },
+    { name: 'Utilities', value: s?.byCategory.find(c => c._id === 'Utilities')?.total ?? 0, color: '#f87171' },
+    { name: 'Operations', value: s?.byCategory.find(c => c._id === 'Operations')?.total ?? 0, color: '#2dd4bf' },
+    { name: 'Marketing', value: s?.byCategory.find(c => c._id === 'Marketing')?.total ?? 0, color: '#fbbf24' },
   ];
   const donutTotal = donut.reduce((sum, item) => sum + item.value, 0);
 
@@ -344,7 +344,14 @@ function Dashboard({ user }) {
         <div className="panel-header">
           <div className="mini-header">Expense trend</div>
           <div className="range-switcher">
-            {['daily', 'weekly', 'monthly'].map(option => <button key={option} className={range === option ? 'selected' : ''} onClick={() => setRange(option)}>{option}</button>)}
+            {[
+              { value: 'daily', label: 'Day', ariaLabel: 'Last 7 days' },
+              { value: 'weekly', label: 'Week', ariaLabel: 'Last 8 weeks' },
+              { value: '1m', label: '1m', ariaLabel: 'Last month' },
+              { value: '3m', label: '3m', ariaLabel: 'Last 3 months' },
+              { value: '6m', label: '6m', ariaLabel: 'Last 6 months' },
+              { value: '12m', label: '12m', ariaLabel: 'Last 12 months' },
+            ].map(option => <button key={option.value} aria-label={option.ariaLabel} title={option.ariaLabel} className={range === option.value ? 'selected' : ''} onClick={() => setRange(option.value)}>{option.label}</button>)}
           </div>
         </div>
         <div className="trend-summary"><strong>{trendChange >= 0 ? '+' : ''}{trendChange.toFixed(1)}%</strong> change from the previous period</div>

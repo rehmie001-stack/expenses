@@ -107,6 +107,80 @@ function getSummary() {
   };
 }
 
+function subtractMonths(date, months) {
+  const result = new Date(date);
+  const day = result.getDate();
+  result.setDate(1);
+  result.setMonth(result.getMonth() - months);
+  const lastDay = new Date(result.getFullYear(), result.getMonth() + 1, 0).getDate();
+  result.setDate(Math.min(day, lastDay));
+  return result;
+}
+
+function summarizeExpenses(expenses, range = '1m') {
+  const now = new Date();
+  const isDaily = range === 'daily';
+  const isWeekly = range === 'weekly';
+  const monthCount = isDaily || isWeekly
+    ? 0
+    : range === 'monthly'
+      ? 1
+      : Number(/^([0-9]+)m$/.exec(range)?.[1]) || 1;
+  const periodStart = new Date(now);
+
+  if (isDaily) periodStart.setDate(periodStart.getDate() - 7);
+  else if (isWeekly) periodStart.setDate(periodStart.getDate() - 56);
+  else periodStart.setTime(subtractMonths(now, monthCount).getTime());
+
+  const filtered = expenses.filter(expense => !expense.createdAt || new Date(expense.createdAt) >= periodStart);
+  const grouped = filtered.reduce((result, expense) => {
+    const name = expense.category || 'Uncategorised';
+    result[name] = (result[name] || 0) + Number(expense.amount || 0);
+    return result;
+  }, {});
+  const trendSize = isDaily ? 7 : isWeekly ? 8 : monthCount;
+  const trend = Array.from({ length: trendSize }, (_, index) => {
+    const startOffset = trendSize - index;
+    const endOffset = startOffset - 1;
+    const bucketStart = isDaily || isWeekly
+      ? new Date(now.getTime() - startOffset * (isDaily ? 1 : 7) * 86400000)
+      : subtractMonths(now, startOffset);
+    const bucketEnd = isDaily || isWeekly
+      ? new Date(now.getTime() - endOffset * (isDaily ? 1 : 7) * 86400000)
+      : subtractMonths(now, endOffset);
+    const items = filtered.filter(expense => {
+      const date = new Date(expense.createdAt || now);
+      return date >= bucketStart && date < bucketEnd;
+    });
+    const statusTotal = status => items.filter(expense => expense.status === status)
+      .reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+    const label = isDaily
+      ? bucketStart.toLocaleDateString(undefined, { weekday: 'short' })
+      : isWeekly
+        ? `W${index + 1}`
+        : bucketStart.toLocaleDateString(undefined, bucketStart.getFullYear() === now.getFullYear()
+          ? { month: 'short' }
+          : { month: 'short', year: '2-digit' });
+
+    return {
+      label,
+      total: items.reduce((sum, expense) => sum + Number(expense.amount || 0), 0),
+      approved: statusTotal('approved'),
+      pending: statusTotal('pending'),
+      rejected: statusTotal('rejected'),
+    };
+  });
+
+  return {
+    byCategory: Object.entries(grouped).map(([name, total]) => ({ _id: name, total })),
+    approved: filtered.filter(expense => expense.status === 'approved').reduce((sum, expense) => sum + Number(expense.amount || 0), 0),
+    rejected: filtered.filter(expense => expense.status === 'rejected').reduce((sum, expense) => sum + Number(expense.amount || 0), 0),
+    pending: filtered.filter(expense => expense.status === 'pending').reduce((sum, expense) => sum + Number(expense.amount || 0), 0),
+    total: filtered.reduce((sum, expense) => sum + Number(expense.amount || 0), 0),
+    trend,
+  };
+}
+
 async function fallbackApi(path, options = {}) {
   ensureSeedData();
 
@@ -252,42 +326,8 @@ async function fallbackApi(path, options = {}) {
   }
 
   if (routePath === 'summary') {
-    const range = new URLSearchParams(query).get('range') || 'monthly';
-    const expenses = getExpenses();
-    const now = new Date();
-    const days = range === 'daily' ? 7 : range === 'weekly' ? 56 : 180;
-    const start = new Date(now);
-    start.setDate(start.getDate() - days);
-    const filtered = expenses.filter(expense => !expense.createdAt || new Date(expense.createdAt) >= start);
-    const grouped = filtered.reduce((result, expense) => { result[expense.category || 'Uncategorised'] = (result[expense.category || 'Uncategorised'] || 0) + Number(expense.amount || 0); return result; }, {});
-    const trendSize = range === 'daily' ? 7 : range === 'weekly' ? 8 : 6;
-    const bucketDays = range === 'daily' ? 1 : range === 'weekly' ? 7 : 30;
-    const trend = Array.from({ length: trendSize }, (_, index) => {
-      const bucketStart = new Date(now);
-      bucketStart.setDate(bucketStart.getDate() - (trendSize - index) * bucketDays);
-      const bucketEnd = new Date(now);
-      bucketEnd.setDate(bucketEnd.getDate() - (trendSize - index - 1) * bucketDays);
-      const items = filtered.filter(expense => {
-        const date = new Date(expense.createdAt || now);
-        return date >= bucketStart && date < bucketEnd;
-      });
-      const statusTotal = status => items.filter(expense => expense.status === status)
-        .reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
-      return {
-        label: range === 'daily' ? bucketStart.toLocaleDateString(undefined, { weekday: 'short' }) : range === 'weekly' ? `W${index + 1}` : bucketStart.toLocaleDateString(undefined, { month: 'short' }),
-        total: items.reduce((sum, expense) => sum + Number(expense.amount || 0), 0),
-        approved: statusTotal('approved'),
-        pending: statusTotal('pending'),
-        rejected: statusTotal('rejected'),
-      };
-    });
-    return {
-      byCategory: Object.entries(grouped).map(([name, total]) => ({ _id: name, total })),
-      approved: filtered.filter(expense => expense.status === 'approved').reduce((sum, expense) => sum + Number(expense.amount || 0), 0),
-      rejected: filtered.filter(expense => expense.status === 'rejected').reduce((sum, expense) => sum + Number(expense.amount || 0), 0),
-      pending: filtered.filter(expense => expense.status === 'pending').reduce((sum, expense) => sum + Number(expense.amount || 0), 0),
-      trend,
-    };
+    const range = new URLSearchParams(query).get('range') || '1m';
+    return summarizeExpenses(getExpenses(), range);
   }
 
   if (normalizedPath === 'auth/logout') {
