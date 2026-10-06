@@ -2,15 +2,15 @@
 
 ## Shared team setup
 
-The Render blueprint in `render.yaml` provisions the installable web app and API service. Supabase provides the shared PostgreSQL database.
+The Render blueprint in `render.yaml` provisions the installable web app, API service, and shared Render PostgreSQL database.
 
 1. Push this project to a GitHub repository.
 2. In Render, create a new Blueprint and connect that repository. Review the services from `render.yaml` and deploy them.
-3. In Supabase, open **Connect** and copy the PostgreSQL **Session pooler** URI. Keep it private.
-4. Set that URI as `DATABASE_URL` on the `mall-expenses-api` service in Render. For a new Blueprint, Render prompts for this value because it is marked `sync: false`.
+3. Render provisions the PostgreSQL database and automatically supplies its connection string to the API as `DATABASE_URL`.
+4. Wait for both the API and database to finish provisioning, then check the API service's `/health` URL.
 5. Open the `mall-expenses-app` static site's public URL. Team members can use the browser's **Install app** option to add it to their desktop or phone home screen.
 
-The PWA build gets the API URL directly from the deployed API service. Keep `DATABASE_URL` private and configure it only on the hosted backend. The existing Windows Electron build remains available separately.
+The PWA build gets the API URL directly from the deployed API service. Keep `DATABASE_URL` private and configure it only on the hosted backend. Existing data in Supabase is not copied into the new Render database. The existing Windows Electron build remains available separately.
 
 ## Local development
 

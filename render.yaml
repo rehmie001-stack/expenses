@@ -28,4 +28,13 @@ services:
       - key: PORT
         value: 4000
       - key: DATABASE_URL
-        sync: false
+        fromDatabase:
+          name: rhemie-mall-db
+          property: connectionString
+
+databases:
+  - name: rhemie-mall-db
+    databaseName: rhemie_mall
+    user: rhemie_mall
+    plan: free
+    region: oregon
