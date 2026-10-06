@@ -186,7 +186,7 @@ function Tasks({ user }) {
   const [err, setErr] = useState('');
 
   const load = async () => {
-    const [taskList, userList] = await Promise.all([api('/tasks'), api('/users')]);
+    const [taskList, userList] = await Promise.all([api('/tasks'), api('/task-assignees')]);
     setRows(taskList);
     setUsers(userList);
   };
@@ -216,7 +216,7 @@ function Tasks({ user }) {
       <input placeholder="Task title" value={f.title} onChange={e => setF({ ...f, title: e.target.value })} />
       <select value={f.assignedTo} onChange={e => setF({ ...f, assignedTo: e.target.value })}>
         <option value="">Assign to</option>
-        {users.filter(u => u._id !== user._id).map(u => <option key={u._id} value={u._id}>{u.name} ({u.role})</option>)}
+        {users.map(u => <option key={u._id} value={u._id}>{u.name} ({u.role})</option>)}
       </select>
       <input type="date" value={f.dueDate} onChange={e => setF({ ...f, dueDate: e.target.value })} />
       {err && <div className="muted" style={{ color: '#f43f5e' }}>{err}</div>}
@@ -226,14 +226,17 @@ function Tasks({ user }) {
       <thead><tr><th>Task</th><th>Assigned</th><th>Due</th><th>Status</th></tr></thead>
       <tbody>{rows.map(t => <tr key={t._id}><td>{t.title}</td><td>{t.assignedTo?.name}</td>
         <td>{t.dueDate ? new Date(t.dueDate).toLocaleDateString() : '-'}</td>
-        <td><select value={t.status} onChange={e => set(t._id, e.target.value)}>
-          {['open', 'in_progress', 'blocked', 'done'].map(s => <option key={s}>{s}</option>)}</select></td></tr>)}</tbody></table></div>
+        <td>{PRIV.includes(user.role)
+          ? <select value={t.status} onChange={e => set(t._id, e.target.value)}>
+            {['open', 'in_progress', 'blocked', 'done'].map(s => <option key={s}>{s}</option>)}
+          </select>
+          : <span className="pill">{t.status}</span>}</td></tr>)}</tbody></table></div>
   </>);
 }
 
 function Users() {
   const [rows, setRows] = useState([]);
-  const [f, setF] = useState({ name: '', email: '', password: '', role: 'manager' });
+  const [f, setF] = useState({ name: '', email: '', password: '', role: 'user' });
   const [err, setErr] = useState('');
 
   const load = () => api('/users').then(setRows);
@@ -253,7 +256,7 @@ function Users() {
     try {
       setErr('');
       await api('/users', { method: 'POST', body: { name, email, password, role } });
-      setF({ name: '', email: '', password: '', role: 'manager' });
+      setF({ name: '', email: '', password: '', role: 'user' });
       load();
     } catch (e) {
       setErr(e.message);
@@ -266,6 +269,7 @@ function Users() {
       <input placeholder="Email" value={f.email} onChange={e => setF({ ...f, email: e.target.value })} />
       <input type="password" placeholder="Password" value={f.password} onChange={e => setF({ ...f, password: e.target.value })} />
       <select value={f.role} onChange={e => setF({ ...f, role: e.target.value })}>
+        <option value="user">User</option>
         <option value="manager">Manager</option>
         <option value="accountant">Accountant</option>
         <option value="super_admin">Super Admin</option>
@@ -424,21 +428,22 @@ function AppShell() {
   const [user, setUser] = useState(null); const [tab, setTab] = useState('Dashboard');
   if (!user) return <Login onLogin={setUser} />;
 
-  const tabs = ['Dashboard', 'Expenses', 'Tasks'];
+  const tabs = user.role === 'user' ? ['Expenses', 'Tasks'] : ['Dashboard', 'Expenses', 'Tasks'];
   if (user.role === 'super_admin') tabs.push('Users');
 
-  const Page = { Dashboard, Expenses, Tasks, Users }[tab];
+  const activeTab = tabs.includes(tab) ? tab : tabs[0];
+  const Page = { Dashboard, Expenses, Tasks, Users }[activeTab];
 
   return (
     <div className="app">
       <aside className="sidebar">
         <div className="logo">Rhemie <span>Mall</span></div>
-        {tabs.map(t => <button key={t} className={'nav' + (tab === t ? ' active' : '')} onClick={() => setTab(t)}>{t}</button>)}
+        {tabs.map(t => <button key={t} className={'nav' + (activeTab === t ? ' active' : '')} onClick={() => setTab(t)}>{t}</button>)}
         <div style={{ flex: 1 }} />
         <button className="nav" onClick={() => { setToken(null); setUser(null); }}>Sign out</button>
       </aside>
       <main className="main">
-        <div className="top"><div><h1>{tab}</h1><div className="muted">{user.role.replace('_', ' ')}</div></div><ThemeSwitcher /></div>
+        <div className="top"><div><h1>{activeTab}</h1><div className="muted">{user.role.replace('_', ' ')}</div></div><ThemeSwitcher /></div>
         <Page user={user} />
       </main>
     </div>

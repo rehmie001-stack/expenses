@@ -4,7 +4,8 @@ const { createService } = require('./database');
 
 const app = express();
 const PORT = Number(process.env.PORT || 4000);
-const ALLOWED_ROLES = ['super_admin', 'manager', 'accountant'];
+const PRIVILEGED_ROLES = ['super_admin', 'manager', 'accountant'];
+const ALLOWED_ROLES = [...PRIVILEGED_ROLES, 'user'];
 
 let service;
 
@@ -65,6 +66,15 @@ app.get('/users', async (req, res) => {
   }
 });
 
+app.get('/task-assignees', async (req, res) => {
+  try {
+    await getCurrentUser(req);
+    return res.json((await service.getUsers()).map(normalizeUser));
+  } catch (error) {
+    return res.status(401).json({ message: error.message || 'Please sign in' });
+  }
+});
+
 app.post('/users', async (req, res) => {
   try {
     const currentUser = await getCurrentUser(req);
@@ -108,7 +118,10 @@ app.post('/expenses', async (req, res) => {
 
 app.delete('/expenses/:id', async (req, res) => {
   try {
-    await getCurrentUser(req);
+    const currentUser = await getCurrentUser(req);
+    if (!PRIVILEGED_ROLES.includes(currentUser.role)) {
+      return res.status(403).json({ message: 'You do not have permission to delete expenses.' });
+    }
     return res.json(await service.deleteExpense(req.params.id));
   } catch (error) {
     return res.status(401).json({ message: error.message || 'Please sign in' });
@@ -117,7 +130,10 @@ app.delete('/expenses/:id', async (req, res) => {
 
 app.post('/expenses/:id/decision', async (req, res) => {
   try {
-    await getCurrentUser(req);
+    const currentUser = await getCurrentUser(req);
+    if (!PRIVILEGED_ROLES.includes(currentUser.role)) {
+      return res.status(403).json({ message: 'You do not have permission to approve or reject expenses.' });
+    }
     return res.json(await service.updateExpenseDecision(req.params.id, !!(req.body && req.body.approve)));
   } catch (error) {
     return res.status(400).json({ message: error.message || 'Unable to update expense' });
@@ -145,7 +161,10 @@ app.post('/tasks', async (req, res) => {
 
 app.patch('/tasks/:id/status', async (req, res) => {
   try {
-    await getCurrentUser(req);
+    const currentUser = await getCurrentUser(req);
+    if (!PRIVILEGED_ROLES.includes(currentUser.role)) {
+      return res.status(403).json({ message: 'You do not have permission to change task status.' });
+    }
     const updated = await service.updateTaskStatus(req.params.id, req.body?.status);
     return res.json(updated);
   } catch (error) {
@@ -155,7 +174,10 @@ app.patch('/tasks/:id/status', async (req, res) => {
 
 app.get('/summary', async (req, res) => {
   try {
-    await getCurrentUser(req);
+    const currentUser = await getCurrentUser(req);
+    if (!PRIVILEGED_ROLES.includes(currentUser.role)) {
+      return res.status(403).json({ message: 'You do not have permission to view summaries.' });
+    }
     const range = req.query.range || 'monthly';
     return res.json(await service.getSummary(range));
   } catch (error) {
