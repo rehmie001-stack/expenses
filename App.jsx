@@ -299,13 +299,22 @@ function Dashboard({ user }) {
   const getPoints = key => trend.map((item, index) => `${(index / Math.max(trend.length - 1, 1)) * 100},${100 - (Number(item[key] || 0) / maxTrend) * 82}`).join(' ');
   const currentTrend = trend.at(-1)?.total || 0;
   const previousTrend = trend.at(-2)?.total || 0;
-  const trendChange = previousTrend ? ((currentTrend - previousTrend) / previousTrend) * 100 : 0;
-  const donut = [
-    { name: 'Utilities', value: s?.byCategory.find(c => c._id === 'Utilities')?.total ?? 0, color: '#f87171' },
-    { name: 'Operations', value: s?.byCategory.find(c => c._id === 'Operations')?.total ?? 0, color: '#2dd4bf' },
-    { name: 'Marketing', value: s?.byCategory.find(c => c._id === 'Marketing')?.total ?? 0, color: '#fbbf24' },
-  ];
+  const trendChange = previousTrend > 0 ? ((currentTrend - previousTrend) / previousTrend) * 100 : null;
+  const donutColors = ['#f87171', '#2dd4bf', '#fbbf24', '#60a5fa', '#c084fc', '#fb7185', '#a3e635'];
+  const donut = (s?.byCategory || []).map((category, index) => ({
+    name: category._id || 'Uncategorised',
+    value: Number(category.total || 0),
+    color: donutColors[index % donutColors.length],
+  }));
   const donutTotal = donut.reduce((sum, item) => sum + item.value, 0);
+  let donutPosition = 0;
+  const donutGradient = donutTotal > 0
+    ? `conic-gradient(${donut.map(item => {
+      const start = donutPosition;
+      donutPosition += (item.value / donutTotal) * 100;
+      return `${item.color} ${start}% ${donutPosition}%`;
+    }).join(', ')})`
+    : 'conic-gradient(var(--surface-2) 0% 100%)';
 
   return <div className="dashboard-shell">
     <div className="welcome-banner">
@@ -320,7 +329,7 @@ function Dashboard({ user }) {
       <div className="metric-card">
         <div className="metric-title">Total spend</div>
         <div className="metric-value">{fmt(total)}</div>
-        <div className="metric-sub">All entered expenses</div>
+        <div className="metric-sub">Selected period spend</div>
       </div>
       <div className="metric-card">
         <div className="metric-title">Approved</div>
@@ -354,7 +363,13 @@ function Dashboard({ user }) {
             ].map(option => <button key={option.value} aria-label={option.ariaLabel} title={option.ariaLabel} className={range === option.value ? 'selected' : ''} onClick={() => setRange(option.value)}>{option.label}</button>)}
           </div>
         </div>
-        <div className="trend-summary"><strong>{trendChange >= 0 ? '+' : ''}{trendChange.toFixed(1)}%</strong> change from the previous period</div>
+        <div className="trend-summary">
+          {trend.length < 2
+            ? 'Not enough periods to compare'
+            : trendChange === null
+              ? currentTrend > 0 ? 'New spend this period' : 'No spend in either period'
+              : <><strong>{trendChange >= 0 ? '+' : ''}{trendChange.toFixed(1)}%</strong> change from the previous period</>}
+        </div>
         <div className="svg-chart">
           <svg viewBox="0 0 100 100" preserveAspectRatio="none" role="img" aria-label="Expense trend chart">
             <path className="chart-area" d={`M 0 100 L ${getPoints('total') || '0,100'} L 100 100 Z`} />
@@ -371,11 +386,13 @@ function Dashboard({ user }) {
           <span className="panel-label">Live</span>
         </div>
         <div className="donut-wrap">
-          <div className="donut-chart">
+          <div className="donut-chart" style={{ background: donutGradient }}>
             <div className="donut-inner">{fmt(donutTotal)}</div>
           </div>
           <div className="legend">
-            {donut.map(item => <div key={item.name} className="legend-item"><span className="legend-dot" style={{ background: item.color }} />{item.name}</div>)}
+            {donut.length
+              ? donut.map(item => <div key={item.name} className="legend-item"><span className="legend-dot" style={{ background: item.color }} />{item.name}: {fmt(item.value)}</div>)
+              : <div className="muted">No expenses in this period</div>}
           </div>
         </div>
       </div>

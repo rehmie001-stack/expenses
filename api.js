@@ -138,16 +138,21 @@ function summarizeExpenses(expenses, range = '1m') {
     result[name] = (result[name] || 0) + Number(expense.amount || 0);
     return result;
   }, {});
-  const trendSize = isDaily ? 7 : isWeekly ? 8 : monthCount;
+  const isOneMonth = !isDaily && !isWeekly && monthCount === 1;
+  const trendSize = isDaily ? 7 : isWeekly ? 8 : isOneMonth ? Math.ceil((now - periodStart) / (7 * 86400000)) : monthCount;
   const trend = Array.from({ length: trendSize }, (_, index) => {
     const startOffset = trendSize - index;
     const endOffset = startOffset - 1;
     const bucketStart = isDaily || isWeekly
       ? new Date(now.getTime() - startOffset * (isDaily ? 1 : 7) * 86400000)
-      : subtractMonths(now, startOffset);
+      : isOneMonth
+        ? new Date(periodStart.getTime() + index * 7 * 86400000)
+        : subtractMonths(now, startOffset);
     const bucketEnd = isDaily || isWeekly
       ? new Date(now.getTime() - endOffset * (isDaily ? 1 : 7) * 86400000)
-      : subtractMonths(now, endOffset);
+      : isOneMonth
+        ? new Date(Math.min(bucketStart.getTime() + 7 * 86400000, now.getTime()))
+        : subtractMonths(now, endOffset);
     const items = filtered.filter(expense => {
       const date = new Date(expense.createdAt || now);
       return date >= bucketStart && date < bucketEnd;
@@ -158,6 +163,8 @@ function summarizeExpenses(expenses, range = '1m') {
       ? bucketStart.toLocaleDateString(undefined, { weekday: 'short' })
       : isWeekly
         ? `W${index + 1}`
+        : isOneMonth
+          ? bucketStart.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
         : bucketStart.toLocaleDateString(undefined, bucketStart.getFullYear() === now.getFullYear()
           ? { month: 'short' }
           : { month: 'short', year: '2-digit' });

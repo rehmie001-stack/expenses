@@ -51,7 +51,7 @@ h1{font-size:24px;margin:0} .muted{color:var(--muted);font-size:13px}
 .chart-labels{display:grid;grid-template-columns:repeat(8,1fr);color:var(--muted);font-size:10px;text-align:center}
 .chart-legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px;color:var(--muted);font-size:11px}.chart-legend span{display:flex;align-items:center;gap:5px}.chart-legend i{display:inline-block;width:8px;height:8px;border-radius:50%}
 .donut-wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:170px}
-.donut-chart{width:150px;height:150px;border-radius:50%;background:conic-gradient(#f87171 0 35%, #2dd4bf 35% 62%, #fbbf24 62% 100%);position:relative;display:grid;place-items:center}
+.donut-chart{width:150px;height:150px;flex:none;border-radius:50%;position:relative;display:grid;place-items:center}
 .donut-inner{width:88px;height:88px;border-radius:50%;background:var(--surface);display:grid;place-items:center;font-size:12px;font-weight:700;color:var(--text)}
 .legend{display:grid;gap:8px;font-size:12px;color:var(--muted)}
 .legend-item{display:flex;align-items:center;gap:8px}
