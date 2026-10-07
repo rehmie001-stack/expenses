@@ -168,14 +168,14 @@ function Expenses({ user }) {
         </select>
       </div>
       <table>
-      <thead><tr><th>Title</th><th>Category</th><th>Amount</th><th>Status</th>{priv && <th />}</tr></thead>
+      <thead><tr><th>Title</th><th>Category</th><th>Amount</th><th>Added by</th><th>Status</th>{priv && <th />}</tr></thead>
       <tbody>{visibleRows.map(r => <tr key={r._id}>
-        <td>{r.title}</td><td>{r.category}</td><td>{fmt(r.amount)}</td><td><span className="pill">{r.status}</span></td>
+        <td>{r.title}</td><td>{r.category}</td><td>{fmt(r.amount)}</td><td>{r.createdBy || 'Unknown'}</td><td><span className="pill">{r.status}</span></td>
         {priv && <td style={{ whiteSpace: 'nowrap' }}>
           <button className="pill" onClick={() => decide(r._id, true)}>Approve</button>{' '}
           <button className="pill" onClick={() => decide(r._id, false)}>Reject</button>{' '}
           <button className="pill" onClick={() => del(r._id)}>Delete</button></td>}
-      </tr>)}{visibleRows.length === 0 && <tr><td colSpan={priv ? 5 : 4} className="muted">No expenses match this status.</td></tr>}</tbody></table></div>
+      </tr>)}{visibleRows.length === 0 && <tr><td colSpan={priv ? 6 : 5} className="muted">No expenses match this status.</td></tr>}</tbody></table></div>
   </>);
 }
 

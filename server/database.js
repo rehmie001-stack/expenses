@@ -62,6 +62,7 @@ function serializeExpense(row) {
     amount: Number(row.amount),
     status: row.status,
     createdAt: row.created_at ?? row.createdAt,
+    createdBy: row.created_by ?? row.createdBy ?? null,
   };
 }
 
@@ -206,7 +207,8 @@ async function initializeDatabase() {
       category TEXT NOT NULL,
       amount REAL NOT NULL,
       status TEXT NOT NULL DEFAULT 'pending',
-      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+      created_by TEXT
     );
 
     CREATE TABLE IF NOT EXISTS tasks (
@@ -217,6 +219,12 @@ async function initializeDatabase() {
       status TEXT NOT NULL DEFAULT 'open'
     );
   `);
+
+  try {
+    db.run('ALTER TABLE expenses ADD COLUMN created_by TEXT');
+  } catch (error) {
+    if (!String(error.message).includes('duplicate column name')) throw error;
+  }
 
   if (!fileExists) {
     const insertUser = db.prepare('INSERT INTO users (id, name, email, password, role) VALUES (?, ?, ?, ?, ?)');
@@ -273,7 +281,8 @@ async function ensurePostgres() {
         category TEXT NOT NULL,
         amount NUMERIC NOT NULL,
         status TEXT NOT NULL DEFAULT 'pending',
-        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        created_by TEXT
       );
 
       CREATE TABLE IF NOT EXISTS tasks (
@@ -284,6 +293,7 @@ async function ensurePostgres() {
         status TEXT NOT NULL DEFAULT 'open'
       );
     `);
+    await client.query('ALTER TABLE expenses ADD COLUMN IF NOT EXISTS created_by TEXT');
 
     const userCount = await client.query('SELECT COUNT(*)::int AS count FROM users');
     if (Number(userCount.rows[0].count) === 0) {
@@ -357,9 +367,9 @@ async function createPostgresService() {
     return result.rows[0] ? serializeExpense(result.rows[0]) : null;
   };
 
-  const createExpense = async ({ title, category, amount }) => {
+  const createExpense = async ({ title, category, amount, createdBy }) => {
     const id = `e${Date.now()}`;
-    await pool.query('INSERT INTO expenses (id, title, category, amount, status, created_at) VALUES ($1, $2, $3, $4, $5, $6)', [id, String(title).trim(), String(category).trim(), Number(amount), 'pending', new Date().toISOString()]);
+    await pool.query('INSERT INTO expenses (id, title, category, amount, status, created_at, created_by) VALUES ($1, $2, $3, $4, $5, $6, $7)', [id, String(title).trim(), String(category).trim(), Number(amount), 'pending', new Date().toISOString(), createdBy]);
     return getExpenseById(id);
   };
 
@@ -485,10 +495,10 @@ async function createService() {
     return getSingleRow(stmt, serializeExpense);
   };
 
-  const createExpense = ({ title, category, amount }) => {
+  const createExpense = ({ title, category, amount, createdBy }) => {
     const id = `e${Date.now()}`;
-    db.prepare('INSERT INTO expenses (id, title, category, amount, status, created_at) VALUES (?, ?, ?, ?, ?, ?)')
-      .run([id, String(title).trim(), String(category).trim(), Number(amount), 'pending', new Date().toISOString()]);
+    db.prepare('INSERT INTO expenses (id, title, category, amount, status, created_at, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)')
+      .run([id, String(title).trim(), String(category).trim(), Number(amount), 'pending', new Date().toISOString(), createdBy]);
     persist(db);
     return getExpenseById(id);
   };

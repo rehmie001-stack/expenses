@@ -249,6 +249,7 @@ async function fallbackApi(path, options = {}) {
   if (routePath === 'expenses') {
     if (method === 'GET') return getExpenses();
     if (method === 'POST') {
+      const currentUser = getCurrentUser();
       const nextExpense = {
         _id: `e${Date.now()}`,
         title: body.title,
@@ -256,6 +257,7 @@ async function fallbackApi(path, options = {}) {
         amount: Number(body.amount) || 0,
         status: 'pending',
         createdAt: new Date().toISOString(),
+        createdBy: currentUser?.name || 'Unknown',
       };
 
       const expenses = getExpenses();

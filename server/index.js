@@ -107,9 +107,9 @@ app.get('/expenses', async (req, res) => {
 
 app.post('/expenses', async (req, res) => {
   try {
-    await getCurrentUser(req);
+    const currentUser = await getCurrentUser(req);
     const { title, category, amount } = req.body || {};
-    const created = await service.createExpense({ title, category, amount });
+    const created = await service.createExpense({ title, category, amount, createdBy: currentUser.name });
     return res.status(201).json(created);
   } catch (error) {
     return res.status(400).json({ message: error.message || 'Unable to create expense' });
